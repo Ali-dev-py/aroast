@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppState } from "../../components/AppState";
-import { PRODUCTS, GRINDS, roastInfo, faNum } from "../../lib/aroast";
+import { GRINDS, roastInfo, faNum } from "../../lib/aroast";
+import { useProduct } from "../../lib/api";
 import { Price, Bag, StatRow, IconArrow } from "../../components/UI";
 import { notFound } from "next/navigation";
 
@@ -10,7 +11,7 @@ export default function ProductDetail({ params }) {
   const { productId } = params;
   const { addToCart } = useAppState();
 
-  const product = PRODUCTS.find((p) => p.id === productId);
+  const { product, loading, error } = useProduct(productId);
 
   // Declare all hooks at the top of the component to comply with React Hook Rules (never after conditional early returns)
   const [selectedSize, setSelectedSize] = useState(product ? (product.sizes[1] || product.sizes[0]) : null);
@@ -18,7 +19,29 @@ export default function ProductDetail({ params }) {
   const [quantity, setQuantity] = useState(1);
   const [cadence, setCadence] = useState(""); // Default to one-time purchase
 
-  if (!product) {
+  useEffect(() => {
+    if (product && product.sizes && product.sizes.length > 0) {
+      setSelectedSize(product.sizes[1] || product.sizes[0]);
+    }
+  }, [product]);
+
+  if (loading) {
+    return (
+      <div className="view-anim" style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 22px", direction: "rtl", textAlign: "center", color: "var(--muted)" }}>
+        در حال بارگذاری اطلاعات محصول...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="view-anim" style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 22px", direction: "rtl", textAlign: "center", color: "var(--red)" }}>
+        {error}
+      </div>
+    );
+  }
+
+  if (!product || !selectedSize) {
     return notFound();
   }
 
