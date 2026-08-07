@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Handle OPTIONS method directly if needed
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ - [R=200,L]
+
+    # Route clean URLs to PHP endpoints
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^products/?$ products.php [L,QSA]
+    RewriteRule ^products/([^/]+)/?$ products.php?id=$1 [L,QSA]
+    RewriteRule ^categories/?$ categories.php [L,QSA]
+    RewriteRule ^categories/([^/]+)/?$ categories.php?id=$1 [L,QSA]
+</IfModule>

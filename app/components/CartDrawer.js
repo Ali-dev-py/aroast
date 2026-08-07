@@ -4,10 +4,12 @@ import React from "react";
 import Link from "next/link";
 import { useAppState } from "./AppState";
 import { Price, Bag, IconX, IconArrow, IconGift, IconTruck, IconShield } from "./UI";
-import { faNum, PRODUCTS } from "../lib/aroast";
+import { faNum } from "../lib/aroast";
+import { useProducts } from "../lib/api";
 
 export function CartDrawer({ open, onClose }) {
   const { cart, setQty, removeItem, firstOrder } = useAppState();
+  const { products } = useProducts();
 
   if (!open) return null;
 
@@ -117,7 +119,7 @@ export function CartDrawer({ open, onClose }) {
 
               {/* Items List */}
               {cart.map((it) => {
-                const prod = PRODUCTS.find((p) => p.id === it.id);
+                const prod = products.find((p) => p.id === it.id);
                 return (
                   <div
                     key={it.key}

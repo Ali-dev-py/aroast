@@ -3,11 +3,13 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { PRODUCTS, DEVICES, TASTES, SERVINGS, recommend } from "./lib/aroast";
+import { DEVICES, TASTES, SERVINGS, recommend } from "./lib/aroast";
+import { useProducts } from "./lib/api";
 import { Price, Bag, SectionHead, IconArrow, IconLeaf, IconClock, IconTruck, BWImage } from "./components/UI";
 
 export default function Home() {
-  const coreProducts = PRODUCTS.filter((p) => p.category === "core");
+  const { products, loading, error } = useProducts();
+  const coreProducts = products.filter((p) => p.category === "core");
 
   return (
     <div className="view-anim" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 22px 100px" }}>
@@ -90,24 +92,34 @@ export default function Home() {
           sub="از ۱۰۰٪ عربیکای لطیف کوهستان تا دارک رُست‌های سنگین و غنی اسپرسو."
         />
 
-        <div className="r-stack" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px" }} data-grid5>
-          {coreProducts.slice(0, 3).map((p) => (
-            <Link key={p.id} href={`/product/${p.id}`} className="glass hover-grow" style={{ display: "flex", flexDirection: "column", padding: "28px", textAlign: "right", color: "var(--ink)", transition: "transform 0.4s ease, border-color 0.4s ease" }}>
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: "24px" }}>
-                <Bag product={p} w={140} />
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                <h3 style={{ fontSize: "20px", fontWeight: "800" }}>{p.name}</h3>
-                <span className="chip" style={{ fontSize: "11px", padding: "4px 10px" }}>{p.catLabel}</span>
-              </div>
-              <p style={{ fontSize: "13.5px", color: "var(--muted)", lineHeight: "1.7", marginBottom: "20px", height: "46px", overflow: "hidden" }}>{p.tagline}</p>
-              <div style={{ borderTop: "1px solid var(--line)", paddingTop: "14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: "12.5px", color: "var(--faint)", fontFamily: "var(--mono)" }}>{p.sku}</span>
-                <Price value={p.sizes[1].price} size={15} />
-              </div>
-            </Link>
-          ))}
-        </div>
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "40px", color: "var(--muted)" }}>
+            در حال بارگذاری محصولات از سرور...
+          </div>
+        ) : error ? (
+          <div style={{ textAlign: "center", padding: "40px", color: "var(--red)" }}>
+            {error}
+          </div>
+        ) : (
+          <div className="r-stack" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px" }} data-grid5>
+            {coreProducts.slice(0, 3).map((p) => (
+              <Link key={p.id} href={`/product/${p.id}`} className="glass hover-grow" style={{ display: "flex", flexDirection: "column", padding: "28px", textAlign: "right", color: "var(--ink)", transition: "transform 0.4s ease, border-color 0.4s ease" }}>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: "24px" }}>
+                  <Bag product={p} w={140} />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                  <h3 style={{ fontSize: "20px", fontWeight: "800" }}>{p.name}</h3>
+                  <span className="chip" style={{ fontSize: "11px", padding: "4px 10px" }}>{p.catLabel}</span>
+                </div>
+                <p style={{ fontSize: "13.5px", color: "var(--muted)", lineHeight: "1.7", marginBottom: "20px", height: "46px", overflow: "hidden" }}>{p.tagline}</p>
+                <div style={{ borderTop: "1px solid var(--line)", paddingTop: "14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "12.5px", color: "var(--faint)", fontFamily: "var(--mono)" }}>{p.sku}</span>
+                  <Price value={p.sizes && p.sizes[1] ? p.sizes[1].price : (p.sizes && p.sizes[0] ? p.sizes[0].price : 0)} size={15} />
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
 
         <div style={{ display: "flex", justifyContent: "center", marginTop: "42px" }}>
           <Link href="/shop" className="btn btn-red" style={{ display: "inline-flex" }}>
@@ -180,7 +192,7 @@ function GuidedSelector() {
   }
 
   const rec = (phase === "result") ? recommend(device, taste, serving) : null;
-  const recProduct = rec ? PRODUCTS.find((p) => p.id === rec.id) : null;
+  const recProduct = rec ? products.find((p) => p.id === rec.id) : null;
 
   return (
     <div style={{ direction: "rtl", textAlign: "right" }}>
